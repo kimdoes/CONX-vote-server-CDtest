@@ -6,33 +6,25 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class VoteResponse {
 
     @Schema(description = "투표 ID", example = "1")
-    private final Long voteId;
+    private final Long pollId;
 
     @Schema(description = "후보 ID", example = "1")
     private final Long candidateId;
 
-    @Schema(description = "투표 유형", example = "PART_LEADER")
-    private final String voteType;
-
-    private VoteResponse(Long voteId, Long candidateId, String voteType) {
-        this.voteId = voteId;
+    private VoteResponse(Long pollId, Long candidateId) {
+        this.pollId = pollId;
         this.candidateId = candidateId;
-        this.voteType = voteType;
     }
 
-    public static VoteResponse of(Long voteId, Long candidateId, String voteType) {
-        return new VoteResponse(voteId, candidateId, voteType);
+    public static VoteResponse of(Long pollId, Long candidateId) {
+        return new VoteResponse(pollId, candidateId);
     }
 
-    public Long getVoteId() {
-        return voteId;
+    public Long getPollId() {
+        return pollId;
     }
 
     public Long getCandidateId() {
         return candidateId;
-    }
-
-    public String getVoteType() {
-        return voteType;
     }
 }
