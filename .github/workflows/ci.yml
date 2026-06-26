@@ -21,6 +21,16 @@ jobs:
         ports:
           - 6379:6379
 
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: vote_test
+          MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_USER: vote
+          MYSQL_PASSWORD: votepassword
+        ports:
+          - 3306:3306
+
     steps:
       - uses: actions/checkout@v4
       - name: Set up JDK21
