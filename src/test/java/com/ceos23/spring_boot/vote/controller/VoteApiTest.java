@@ -68,17 +68,17 @@ class VoteApiTest {
                     {
                       "name": "Ditda",
                       "part": null,
-                      "team": "DITDA"
+                      "team": "Ditda"
                     },
                     {
                       "name": "JobDri",
                       "part": null,
-                      "team": "JOBDRI"
+                      "team": "JobDri"
                     },
                     {
                       "name": "Groupeat",
                       "part": null,
-                      "team": "GROUPEAT"
+                      "team": "Groupeat"
                     }
                   ]
                 }
@@ -212,20 +212,20 @@ class VoteApiTest {
                   "title": "23기 데모데이 투표",
                   "voteType": "DEMO_DAY",
                   "candidates": [
-                    {
+                    { 
                       "name": "Ditda",
                       "part": null,
-                      "team": "DITDA"
+                      "team": "Ditda"
                     },
                     {
                       "name": "JobDri",
                       "part": null,
-                      "team": "JOBDRI"
+                      "team": "JobDri"
                     },
                     {
                       "name": "Groupeat",
                       "part": null,
-                      "team": "GROUPEAT"
+                      "team": "Groupeat"
                     }
                   ]
                 }
