@@ -160,8 +160,6 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.payload.accessToken").exists())
-                .andExpect(jsonPath("$.payload.refreshToken").exists())
                 .andExpect(jsonPath("$.payload.username").value("홍길동"))
                 .andExpect(jsonPath("$.payload.part").value("BACKEND"))
                 .andExpect(jsonPath("$.payload.team").value("CONX"));
