@@ -10,7 +10,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -24,15 +23,21 @@ jobs:
       mysql:
         image: mysql:8.0
         env:
-          MYSQL_DATABASE: vote_test
           MYSQL_ROOT_PASSWORD: rootpassword
+          MYSQL_DATABASE: vote_test
           MYSQL_USER: vote
           MYSQL_PASSWORD: votepassword
         ports:
           - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up JDK21
         uses: actions/setup-java@v4
         with:
@@ -46,4 +51,4 @@ jobs:
         uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew build
+        run: ./gradlew build -Dspring.profiles.active=ci
