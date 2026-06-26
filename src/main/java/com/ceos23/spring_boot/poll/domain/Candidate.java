@@ -49,6 +49,12 @@ public class Candidate extends BaseEntity {
         this.voteCount++;
     }
 
+    public void decreaseVoteCount() {
+        if (this.voteCount > 0) {
+            this.voteCount--;
+        }
+    }
+
     public boolean belongsTo(Poll poll) {
         return this.poll.getId().equals(poll.getId());
     }
