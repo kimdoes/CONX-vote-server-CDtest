@@ -62,7 +62,6 @@ jobs:
               cat > .env << 'EOF'
               IMAGE_TAG=${{ github.event.workflow_run.head_sha }}
               DB_URL=${{ secrets.DB_URL }}
-              
               DB_USERNAME=vote
               #실제 배포 시에는 admin으로 바꿔야합니다
               
