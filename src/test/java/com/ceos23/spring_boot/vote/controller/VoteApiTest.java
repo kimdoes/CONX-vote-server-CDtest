@@ -212,7 +212,7 @@ class VoteApiTest {
     }
 
     @Transactional
-    private Long createDemoDayPoll() throws Exception {
+    Long createDemoDayPoll() throws Exception {
         String token = login();
 
         String request = """
@@ -254,7 +254,7 @@ class VoteApiTest {
     }
 
     @Transactional
-    private Long createPartLeaderPoll() throws Exception {
+    Long createPartLeaderPoll() throws Exception {
         String token = login();
 
         String request = """
@@ -291,7 +291,7 @@ class VoteApiTest {
     }
 
     @Transactional
-    private Candidate findCandidateByName(Long pollId, String name) {
+    Candidate findCandidateByName(Long pollId, String name) {
         Poll poll = pollRepository.findById(pollId)
                 .orElseThrow();
 
@@ -304,7 +304,7 @@ class VoteApiTest {
     }
 
     @Transactional
-    private void vote(Long pollId, Long candidateId) throws Exception {
+    void vote(Long pollId, Long candidateId) throws Exception {
         String token = login();
 
         String request = """
@@ -322,7 +322,7 @@ class VoteApiTest {
 
     @Transactional
     @PostConstruct
-    private void signup() throws Exception {
+    void signup() throws Exception {
         if (memberRepository.existsByUserLogInId("ceos1234")) {
             return;
         }
