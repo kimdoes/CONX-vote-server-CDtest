@@ -9,7 +9,7 @@ public class CandidateResultResponse {
     @Schema(description = "후보 ID", example = "1")
     private final Long candidateId;
 
-    @Schema(description = "후보 이름", example = "DiggIndie")
+    @Schema(description = "후보 이름", example = "박유민")
     private final String name;
 
     @Schema(description = "득표 수", example = "10")

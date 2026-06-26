@@ -2,13 +2,13 @@ package com.ceos23.spring_boot.poll.controller;
 
 import com.ceos23.spring_boot.global.response.ApiResponse;
 import com.ceos23.spring_boot.poll.dto.PollCreateRequest;
-import com.ceos23.spring_boot.poll.dto.PollInformationResponse;
+import com.ceos23.spring_boot.poll.dto.PollCreateResponse;
 import com.ceos23.spring_boot.poll.dto.PollResultResponse;
 import com.ceos23.spring_boot.poll.service.PollService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
-
+import com.ceos23.spring_boot.poll.dto.PollListResponse;
 import java.util.List;
 
 @Tag(name = "Poll", description = "투표 생성 및 결과 조회 API")
@@ -24,8 +24,8 @@ public class PollController {
 
     @Operation(summary = "투표 만들기", description = "투표 제목, 투표 유형, 후보 목록을 입력받아 투표를 생성합니다.")
     @PostMapping
-    public ApiResponse<PollInformationResponse> createPoll(@RequestBody PollCreateRequest request) {
-        PollInformationResponse response = pollService.createPoll(request);
+    public ApiResponse<PollCreateResponse> createPoll(@RequestBody PollCreateRequest request) {
+        PollCreateResponse response = pollService.createPoll(request);
         return ApiResponse.created("투표 생성 성공", response);
     }
 
@@ -36,9 +36,10 @@ public class PollController {
         return ApiResponse.ok("투표 결과 조회 성공", response);
     }
 
-    @Operation(summary = "투표 목록보기", description = "현재 투표 목록을 확인합니다.")
+    @Operation(summary = "투표 목록 조회", description = "생성된 투표 목록을 조회합니다.")
     @GetMapping
-    public ApiResponse<List<PollInformationResponse>> getAllPolls() {
-        return ApiResponse.ok("투표 목록 조회 성공", pollService.getPolls());
+    public ApiResponse<List<PollListResponse>> getPolls() {
+        List<PollListResponse> response = pollService.getPolls();
+        return ApiResponse.ok("투표 목록 조회 성공", response);
     }
 }

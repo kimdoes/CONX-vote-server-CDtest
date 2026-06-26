@@ -6,10 +6,11 @@ import com.ceos23.spring_boot.poll.domain.Candidate;
 import com.ceos23.spring_boot.poll.domain.Poll;
 import com.ceos23.spring_boot.poll.dto.CandidateCreateRequest;
 import com.ceos23.spring_boot.poll.dto.PollCreateRequest;
-import com.ceos23.spring_boot.poll.dto.PollInformationResponse;
+import com.ceos23.spring_boot.poll.dto.PollCreateResponse;
 import com.ceos23.spring_boot.poll.dto.PollResultResponse;
 import com.ceos23.spring_boot.poll.repository.CandidateRepository;
 import com.ceos23.spring_boot.poll.repository.PollRepository;
+import com.ceos23.spring_boot.poll.dto.PollListResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +27,15 @@ public class PollService {
         this.candidateRepository = candidateRepository;
     }
 
+    @Transactional(readOnly = true)
+    public List<PollListResponse> getPolls() {
+        return pollRepository.findAllByOrderByIdAsc().stream()
+                .map(PollListResponse::from)
+                .toList();
+    }
+
     @Transactional
-    public PollInformationResponse createPoll(PollCreateRequest request) {
+    public PollCreateResponse createPoll(PollCreateRequest request) {
         Poll poll = Poll.of(request.getTitle(), request.getVoteType());
         Poll savedPoll = pollRepository.save(poll);
 
@@ -37,7 +45,7 @@ public class PollService {
 
         candidateRepository.saveAll(candidates);
 
-        return PollInformationResponse.from(savedPoll);
+        return PollCreateResponse.from(savedPoll);
     }
 
     @Transactional(readOnly = true)
@@ -57,13 +65,5 @@ public class PollService {
                 request.getPart(),
                 request.getTeam()
         );
-    }
-
-    /**
-     * 투표 목록 조회
-     */
-    public List<PollInformationResponse> getPolls(){
-        List<Poll> polls = pollRepository.findAll();
-        return polls.stream().map(PollInformationResponse::from).toList();
     }
 }

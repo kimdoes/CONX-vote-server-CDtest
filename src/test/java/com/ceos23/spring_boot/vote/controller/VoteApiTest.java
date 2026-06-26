@@ -11,27 +11,30 @@ import com.ceos23.spring_boot.user.domain.Team;
 import com.ceos23.spring_boot.user.repository.MemberRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("ci")
+@ActiveProfiles("test")
 class VoteApiTest {
 
     @Autowired
@@ -45,37 +48,24 @@ class VoteApiTest {
 
     @Autowired
     private CandidateRepository candidateRepository;
+
     @Autowired
     private MemberRepository memberRepository;
 
-    @PostConstruct
-    @Transactional
-    void signup() throws Exception {
-        SignupRequest signupRequest = new SignupRequest(
-                "ceos1234", "ceos1234**", "contact.conx@gmail.com", Part.BACKEND, "홍길동", Team.CONX
-        );
+    @MockBean
+    private RedisTemplate<Object, Object> redisTemplate;
 
-        mockMvc.perform(post("/api/v1/auth/signup")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(signupRequest)))
-                .andReturn(); // andExpect 제거! 409여도 그냥 넘어감
-    }
-
-    @Transactional
+    @SuppressWarnings("unchecked")
     @BeforeEach
     void setUp() throws Exception {
+        ValueOperations<Object, Object> valueOperations = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+
         candidateRepository.deleteAll();
         pollRepository.deleteAll();
-    }
+        memberRepository.deleteAll();
 
-    @Transactional
-    String login() throws Exception {
-        LoginRequest loginRequest = new LoginRequest("ceos1234", "ceos1234**");
-
-        return mockMvc.perform(post("/api/v1/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(loginRequest)))
-                .andReturn().getResponse().getHeader("Authorization");
+        signup("ceos1234", "contact.conx@gmail.com", Part.BACKEND, "홍길동", Team.CONX);
     }
 
     @Test
@@ -89,20 +79,20 @@ class VoteApiTest {
                   "voteType": "DEMO_DAY",
                   "candidates": [
                     {
-                       "name": "DiggIndie",
-                       "part": null,
-                       "team": "Ditda"
-                     },
-                     {
-                       "name": "모델리",
-                       "part": null,
-                       "team": "JobDri"
-                     },
-                     {
-                       "name": "캐치업",
-                       "part": null,
-                       "team": "Groupeat"
-                     }
+                      "name": "Ditda",
+                      "part": null,
+                      "team": "DITDA"
+                    },
+                    {
+                      "name": "JobDri",
+                      "part": null,
+                      "team": "JOBDRI"
+                    },
+                    {
+                      "name": "Groupeat",
+                      "part": null,
+                      "team": "GROUPEAT"
+                    }
                   ]
                 }
                 """;
@@ -125,13 +115,13 @@ class VoteApiTest {
         String token = login();
         Long pollId = createDemoDayPoll();
 
-        Candidate diggIndie = findCandidateByName(pollId, "DiggIndie");
+        Candidate ditda = findCandidateByName(pollId, "Ditda");
 
         String voteRequest = """
                 {
                   "candidateId": %d
                 }
-                """.formatted(diggIndie.getId());
+                """.formatted(ditda.getId());
 
         mockMvc.perform(post("/api/v1/polls/{pollId}/votes", pollId)
                         .header("Authorization", token)
@@ -141,7 +131,7 @@ class VoteApiTest {
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.message").value("투표 성공"))
                 .andExpect(jsonPath("$.payload.pollId").value(pollId))
-                .andExpect(jsonPath("$.payload.candidateId").value(diggIndie.getId()));
+                .andExpect(jsonPath("$.payload.candidateId").value(ditda.getId()));
     }
 
     @Test
@@ -149,16 +139,16 @@ class VoteApiTest {
     void getPollResultSortedByVoteCountDesc() throws Exception {
         Long pollId = createDemoDayPoll();
 
-        Candidate diggIndie = findCandidateByName(pollId, "DiggIndie");
-        Candidate modeli = findCandidateByName(pollId, "모델리");
-        Candidate catchUp = findCandidateByName(pollId, "캐치업");
+        Candidate ditda = findCandidateByName(pollId, "Ditda");
+        Candidate jobDri = findCandidateByName(pollId, "JobDri");
+        Candidate groupeat = findCandidateByName(pollId, "Groupeat");
 
-        vote(pollId, diggIndie.getId());
-        vote(pollId, modeli.getId());
-        vote(pollId, modeli.getId());
-        vote(pollId, catchUp.getId());
-        vote(pollId, catchUp.getId());
-        vote(pollId, catchUp.getId());
+        vote(pollId, ditda.getId());
+        vote(pollId, jobDri.getId());
+        vote(pollId, jobDri.getId());
+        vote(pollId, groupeat.getId());
+        vote(pollId, groupeat.getId());
+        vote(pollId, groupeat.getId());
 
         mockMvc.perform(get("/api/v1/polls/{pollId}/results", pollId))
                 .andExpect(status().isOk())
@@ -167,11 +157,11 @@ class VoteApiTest {
                 .andExpect(jsonPath("$.payload.pollId").value(pollId))
                 .andExpect(jsonPath("$.payload.title").value("23기 데모데이 투표"))
                 .andExpect(jsonPath("$.payload.voteType").value("DEMO_DAY"))
-                .andExpect(jsonPath("$.payload.results[0].name").value("캐치업"))
+                .andExpect(jsonPath("$.payload.results[0].name").value("Groupeat"))
                 .andExpect(jsonPath("$.payload.results[0].voteCount").value(3))
-                .andExpect(jsonPath("$.payload.results[1].name").value("모델리"))
+                .andExpect(jsonPath("$.payload.results[1].name").value("JobDri"))
                 .andExpect(jsonPath("$.payload.results[1].voteCount").value(2))
-                .andExpect(jsonPath("$.payload.results[2].name").value("DiggIndie"))
+                .andExpect(jsonPath("$.payload.results[2].name").value("Ditda"))
                 .andExpect(jsonPath("$.payload.results[2].voteCount").value(1));
     }
 
@@ -211,28 +201,45 @@ class VoteApiTest {
                 .andExpect(jsonPath("$.message").value("해당 투표에 속한 후보가 아닙니다."));
     }
 
+    @Test
+    @DisplayName("투표 목록을 조회할 수 있다")
+    void getPolls() throws Exception {
+        String token = login();
+        Long pollId = createDemoDayPoll();
+
+        mockMvc.perform(get("/api/v1/polls")
+                        .header("Authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("투표 목록 조회 성공"))
+                .andExpect(jsonPath("$.payload[0].pollId").value(pollId))
+                .andExpect(jsonPath("$.payload[0].title").value("23기 데모데이 투표"))
+                .andExpect(jsonPath("$.payload[0].voteType").value("DEMO_DAY"));
+    }
+
     private Long createDemoDayPoll() throws Exception {
         String token = login();
+
         String request = """
                 {
                   "title": "23기 데모데이 투표",
                   "voteType": "DEMO_DAY",
                   "candidates": [
                     {
-                       "name": "DiggIndie",
-                       "part": null,
-                       "team": "Ditda"
-                     },
-                     {
-                       "name": "모델리",
-                       "part": null,
-                       "team": "JobDri"
-                     },
-                     {
-                       "name": "캐치업",
-                       "part": null,
-                       "team": "Groupeat"
-                     }
+                      "name": "Ditda",
+                      "part": null,
+                      "team": "DITDA"
+                    },
+                    {
+                      "name": "JobDri",
+                      "part": null,
+                      "team": "JOBDRI"
+                    },
+                    {
+                      "name": "Groupeat",
+                      "part": null,
+                      "team": "GROUPEAT"
+                    }
                   ]
                 }
                 """;
@@ -253,6 +260,7 @@ class VoteApiTest {
 
     private Long createPartLeaderPoll() throws Exception {
         String token = login();
+
         String request = """
                 {
                   "title": "23기 백엔드 파트장 투표",
@@ -300,6 +308,7 @@ class VoteApiTest {
 
     private void vote(Long pollId, Long candidateId) throws Exception {
         String token = login();
+
         String request = """
                 {
                   "candidateId": %d
@@ -311,5 +320,46 @@ class VoteApiTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isOk());
+    }
+
+    private void signup(String userId, String email, Part part, String username, Team team) throws Exception {
+        SignupRequest signupRequest = new SignupRequest(
+                userId,
+                "ceos1234**",
+                email,
+                part,
+                username,
+                team
+        );
+
+        mockMvc.perform(post("/api/v1/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signupRequest)))
+                .andExpect(status().isOk());
+    }
+
+    private String login() throws Exception {
+        LoginRequest loginRequest = new LoginRequest("ceos1234", "ceos1234**");
+
+        String responseBody = mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        JsonNode jsonNode = objectMapper.readTree(responseBody);
+        String accessToken = jsonNode.path("payload").path("accessToken").asText();
+
+        if (accessToken == null || accessToken.isBlank()) {
+            throw new IllegalArgumentException("accessToken이 없습니다. responseBody = " + responseBody);
+        }
+
+        if (accessToken.startsWith("Bearer ")) {
+            return accessToken;
+        }
+
+        return "Bearer " + accessToken;
     }
 }
