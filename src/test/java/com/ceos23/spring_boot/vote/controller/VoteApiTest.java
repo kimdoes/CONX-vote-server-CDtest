@@ -327,25 +327,11 @@ class VoteApiTest {
     private String login() throws Exception {
         LoginRequest loginRequest = new LoginRequest("ceos1234", "ceos1234**");
 
-        String responseBody = mockMvc.perform(post("/api/v1/auth/login")
+        return mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        JsonNode jsonNode = objectMapper.readTree(responseBody);
-        String accessToken = jsonNode.path("payload").path("accessToken").asText();
-
-        if (accessToken == null || accessToken.isBlank()) {
-            throw new IllegalArgumentException("accessToken이 없습니다. responseBody = " + responseBody);
-        }
-
-        if (accessToken.startsWith("Bearer ")) {
-            return accessToken;
-        }
-
-        return "Bearer " + accessToken;
+                .getResponse().getHeader("Authorization");
     }
 }
