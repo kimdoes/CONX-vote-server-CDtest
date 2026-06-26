@@ -48,6 +48,7 @@ class VoteApiTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    @PostConstruct
     @Transactional
     void signup() throws Exception {
         SignupRequest signupRequest = new SignupRequest(
@@ -66,8 +67,6 @@ class VoteApiTest {
     void setUp() throws Exception {
         candidateRepository.deleteAll();
         pollRepository.deleteAll();
-        memberRepository.deleteAll();
-        signup();
     }
 
     @Transactional
