@@ -12,7 +12,6 @@ import com.ceos23.spring_boot.user.repository.MemberRepository;
 import com.ceos23.spring_boot.vote.repository.VoteRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +24,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("ci")
+@ActiveProfiles("test")
 class VoteApiTest {
 
     @Autowired
@@ -59,7 +59,7 @@ class VoteApiTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    @Autowired
+    @MockBean
     private RedisTemplate<Object, Object> redisTemplate;
 
     @SuppressWarnings("unchecked")
@@ -480,20 +480,14 @@ class VoteApiTest {
                 .content(request));
     }
 
-    @Transactional
-    @PostConstruct
-    void signup() throws Exception {
-        if (memberRepository.existsByUserLogInId("ceos1234")) {
-            return;
-        }
-
+    private void signup(String userId, String email, Part part, String username, Team team) throws Exception {
         SignupRequest signupRequest = new SignupRequest(
-                "ceos1234",
+                userId,
                 "ceos1234**",
-                "ceos1234@gmail.com",
-                Part.BACKEND,
-                "홍길동",
-                Team.CONX
+                email,
+                part,
+                username,
+                team
         );
 
         mockMvc.perform(post("/api/v1/auth/signup")

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("ci")
+@ActiveProfiles("test")
 public class AuthControllerTest {
 
     @Autowired
@@ -40,8 +41,15 @@ public class AuthControllerTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    @Autowired
+    @MockBean
     private RedisTemplate<Object, Object> redisTemplate;
+
+    @SuppressWarnings("unchecked")
+    @BeforeEach
+    void setUpRedis() {
+        ValueOperations<Object, Object> valueOperations = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    }
 
     @Test
     @Transactional
@@ -160,9 +168,9 @@ public class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.payload.username").value("홍길동"))
-                .andExpect(jsonPath("$.payload.part").value("BACKEND"))
-                .andExpect(jsonPath("$.payload.team").value("CONX"));
+                .andExpect(header().exists("Authorization"))
+                .andExpect(jsonPath("$.status").value(200))
+                .andExpect(jsonPath("$.message").value("로그인 성공"));
     }
 
     @Test
