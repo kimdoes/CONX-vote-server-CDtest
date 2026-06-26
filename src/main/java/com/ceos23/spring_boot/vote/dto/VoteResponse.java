@@ -11,13 +11,17 @@ public class VoteResponse {
     @Schema(description = "후보 ID", example = "1")
     private final Long candidateId;
 
-    private VoteResponse(Long pollId, Long candidateId) {
+    @Schema(description = "후보 이름", example = "Groupeat")
+    private final String candidateName;
+
+    private VoteResponse(Long pollId, Long candidateId, String candidateName) {
         this.pollId = pollId;
         this.candidateId = candidateId;
+        this.candidateName = candidateName;
     }
 
-    public static VoteResponse of(Long pollId, Long candidateId) {
-        return new VoteResponse(pollId, candidateId);
+    public static VoteResponse of(Long pollId, Long candidateId, String candidateName) {
+        return new VoteResponse(pollId, candidateId, candidateName);
     }
 
     public Long getPollId() {
@@ -26,5 +30,9 @@ public class VoteResponse {
 
     public Long getCandidateId() {
         return candidateId;
+    }
+
+    public String getCandidateName() {
+        return candidateName;
     }
 }

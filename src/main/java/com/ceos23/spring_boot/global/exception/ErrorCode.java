@@ -30,8 +30,9 @@ public enum ErrorCode {
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "E017", "리프레시 토큰을 찾을 수 없습니다"),
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "E018", "사용자를 찾을 수 없습니다."),
+    VOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "E019", "투표 기록을 찾을 수 없습니다."),
 
-    FORBIDDEN(HttpStatus.FORBIDDEN, "E018", "해당 페이지에 대한 권한이 없습니다.");
+    FORBIDDEN(HttpStatus.FORBIDDEN, "E020", "해당 페이지에 대한 권한이 없습니다.");
 
     private final HttpStatus httpStatus;
     private final String errorCode;
