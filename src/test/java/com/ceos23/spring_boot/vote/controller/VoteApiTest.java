@@ -11,6 +11,7 @@ import com.ceos23.spring_boot.user.domain.Team;
 import com.ceos23.spring_boot.user.repository.MemberRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -308,14 +309,20 @@ class VoteApiTest {
                 .andExpect(status().isOk());
     }
 
-    private void signup(String userId, String email, Part part, String username, Team team) throws Exception {
+
+    @PostConstruct
+    private void signup() throws Exception {
+        if (memberRepository.existsByUserLogInId("ceos1234")) {
+            return;
+        }
+
         SignupRequest signupRequest = new SignupRequest(
-                userId,
+                "ceos1234",
                 "ceos1234**",
-                email,
-                part,
-                username,
-                team
+                "ceos1234@gmail.com",
+                Part.BACKEND,
+                "홍길동",
+                Team.CONX
         );
 
         mockMvc.perform(post("/api/v1/auth/signup")
