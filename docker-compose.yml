@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  app:
+    depends_on:
+      redis:
+        condition: service_started
+      mysql:
+        condition: service_healthy
+
+    image: contactconx/conx-vote-server:${IMAGE_TAG}
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
+    env_file:
+      - .env
+
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/health/ready" ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7.2
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: vote_test
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: vote
+      MYSQL_PASSWORD: votepassword
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-prootpassword" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:

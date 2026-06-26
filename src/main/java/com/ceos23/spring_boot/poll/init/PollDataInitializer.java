@@ -1,12 +1,12 @@
 package com.ceos23.spring_boot.poll.init;
 
-import com.ceos23.spring_boot.global.type.Part;
-import com.ceos23.spring_boot.global.type.Team;
 import com.ceos23.spring_boot.global.type.VoteType;
 import com.ceos23.spring_boot.poll.domain.Candidate;
 import com.ceos23.spring_boot.poll.domain.Poll;
 import com.ceos23.spring_boot.poll.repository.CandidateRepository;
 import com.ceos23.spring_boot.poll.repository.PollRepository;
+import com.ceos23.spring_boot.user.domain.Part;
+import com.ceos23.spring_boot.user.domain.Team;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,9 +64,9 @@ public class PollDataInitializer implements CommandLineRunner {
         createDemoDayPoll(
                 "데모데이 투표",
                 List.of(
-                        CandidateSeed.of("Ditda", Team.DITDA),
-                        CandidateSeed.of("JobDri", Team.JOBDRI),
-                        CandidateSeed.of("Groupeat", Team.GROUPEAT),
+                        CandidateSeed.of("Ditda", Team.Ditda),
+                        CandidateSeed.of("JobDri", Team.JobDri),
+                        CandidateSeed.of("Groupeat", Team.Groupeat),
                         CandidateSeed.of("IPX", Team.IPX),
                         CandidateSeed.of("CONX", Team.CONX)
                 )

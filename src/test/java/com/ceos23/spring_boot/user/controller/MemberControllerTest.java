@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
@@ -21,15 +20,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ActiveProfiles("ci")
 class MemberControllerTest {
 
     @Autowired
@@ -41,17 +38,8 @@ class MemberControllerTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    @MockBean
+    @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
-
-    @SuppressWarnings("unchecked")
-    @BeforeEach
-    void setUp() {
-        ValueOperations<Object, Object> valueOperations = mock(ValueOperations.class);
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-
-        memberRepository.deleteAll();
-    }
 
     @Test
     @Transactional
@@ -94,25 +82,11 @@ class MemberControllerTest {
     private String login(String userId, String password) throws Exception {
         LoginRequest loginRequest = new LoginRequest(userId, password);
 
-        String responseBody = mockMvc.perform(post("/api/v1/auth/login")
+        return mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        JsonNode jsonNode = objectMapper.readTree(responseBody);
-        String accessToken = jsonNode.path("payload").path("accessToken").asText();
-
-        if (accessToken == null || accessToken.isBlank()) {
-            throw new IllegalArgumentException("accessToken이 없습니다. responseBody = " + responseBody);
-        }
-
-        if (accessToken.startsWith("Bearer ")) {
-            return accessToken;
-        }
-
-        return "Bearer " + accessToken;
+                .getResponse().getHeader("Authorization");
     }
 }

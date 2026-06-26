@@ -1,11 +1,13 @@
 package com.ceos23.spring_boot.poll.domain;
 
 import com.ceos23.spring_boot.global.domain.BaseEntity;
-import com.ceos23.spring_boot.global.type.Part;
-import com.ceos23.spring_boot.global.type.Team;
+import com.ceos23.spring_boot.user.domain.Part;
+import com.ceos23.spring_boot.user.domain.Team;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
+@Getter
 public class Candidate extends BaseEntity {
 
     @Id
@@ -55,29 +57,5 @@ public class Candidate extends BaseEntity {
 
     public boolean belongsTo(Poll poll) {
         return this.poll.getId().equals(poll.getId());
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public Poll getPoll() {
-        return poll;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public Part getPart() {
-        return part;
-    }
-
-    public Team getTeam() {
-        return team;
-    }
-
-    public int getVoteCount() {
-        return voteCount;
     }
 }

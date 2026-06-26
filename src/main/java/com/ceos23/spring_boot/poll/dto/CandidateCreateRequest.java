@@ -1,7 +1,7 @@
 package com.ceos23.spring_boot.poll.dto;
 
-import com.ceos23.spring_boot.global.type.Part;
-import com.ceos23.spring_boot.global.type.Team;
+import com.ceos23.spring_boot.user.domain.Part;
+import com.ceos23.spring_boot.user.domain.Team;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "후보 생성 요청")

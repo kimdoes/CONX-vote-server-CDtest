@@ -12,18 +12,19 @@ import com.ceos23.spring_boot.user.repository.MemberRepository;
 import com.ceos23.spring_boot.vote.repository.VoteRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -37,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+@ActiveProfiles("ci")
 class VoteApiTest {
 
     @Autowired
@@ -58,7 +59,7 @@ class VoteApiTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    @MockBean
+    @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
     @SuppressWarnings("unchecked")
@@ -76,6 +77,7 @@ class VoteApiTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("투표를 만들 수 있다")
     void createPoll() throws Exception {
         String token = login();
@@ -88,17 +90,17 @@ class VoteApiTest {
                     {
                       "name": "Ditda",
                       "part": null,
-                      "team": "DITDA"
+                      "team": "Ditda"
                     },
                     {
                       "name": "JobDri",
                       "part": null,
-                      "team": "JOBDRI"
+                      "team": "JobDri"
                     },
                     {
                       "name": "Groupeat",
                       "part": null,
-                      "team": "GROUPEAT"
+                      "team": "Groupeat"
                     }
                   ]
                 }
@@ -263,6 +265,7 @@ class VoteApiTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("투표 결과는 득표 수 내림차순으로 조회된다")
     void getPollResultSortedByVoteCountDesc() throws Exception {
         Long pollId = createDemoDayPoll();
@@ -315,6 +318,7 @@ class VoteApiTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("존재하지 않는 투표 결과를 조회하면 예외가 발생한다")
     void getPollResultWithInvalidPollId() throws Exception {
         mockMvc.perform(get("/api/v1/polls/{pollId}/results", 999L))
@@ -325,6 +329,7 @@ class VoteApiTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("해당 투표에 속하지 않은 후보에게 투표하면 예외가 발생한다")
     void voteCandidateNotInPoll() throws Exception {
         String token = login();
@@ -351,6 +356,7 @@ class VoteApiTest {
     }
 
     @Test
+    @Transactional
     @DisplayName("투표 목록을 조회할 수 있다")
     void getPolls() throws Exception {
         String token = login();
@@ -361,12 +367,12 @@ class VoteApiTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value(200))
                 .andExpect(jsonPath("$.message").value("투표 목록 조회 성공"))
-                .andExpect(jsonPath("$.payload[0].pollId").value(pollId))
-                .andExpect(jsonPath("$.payload[0].title").value("23기 데모데이 투표"))
-                .andExpect(jsonPath("$.payload[0].voteType").value("DEMO_DAY"));
+                .andExpect(jsonPath("$.payload[?(@.pollId == " + pollId + ")].title").value("23기 데모데이 투표"))
+                .andExpect(jsonPath("$.payload[?(@.pollId == " + pollId + ")].voteType").value("DEMO_DAY"));
     }
 
-    private Long createDemoDayPoll() throws Exception {
+    @Transactional
+    Long createDemoDayPoll() throws Exception {
         String token = login();
 
         String request = """
@@ -374,20 +380,20 @@ class VoteApiTest {
                   "title": "23기 데모데이 투표",
                   "voteType": "DEMO_DAY",
                   "candidates": [
-                    {
+                    { 
                       "name": "Ditda",
                       "part": null,
-                      "team": "DITDA"
+                      "team": "Ditda"
                     },
                     {
                       "name": "JobDri",
                       "part": null,
-                      "team": "JOBDRI"
+                      "team": "JobDri"
                     },
                     {
                       "name": "Groupeat",
                       "part": null,
-                      "team": "GROUPEAT"
+                      "team": "Groupeat"
                     }
                   ]
                 }
@@ -407,7 +413,8 @@ class VoteApiTest {
         return jsonNode.path("payload").path("pollId").asLong();
     }
 
-    private Long createPartLeaderPoll() throws Exception {
+    @Transactional
+    Long createPartLeaderPoll() throws Exception {
         String token = login();
 
         String request = """
@@ -443,7 +450,8 @@ class VoteApiTest {
         return jsonNode.path("payload").path("pollId").asLong();
     }
 
-    private Candidate findCandidateByName(Long pollId, String name) {
+    @Transactional
+    Candidate findCandidateByName(Long pollId, String name) {
         Poll poll = pollRepository.findById(pollId)
                 .orElseThrow();
 
@@ -472,14 +480,20 @@ class VoteApiTest {
                 .content(request));
     }
 
-    private void signup(String userId, String email, Part part, String username, Team team) throws Exception {
+    @Transactional
+    @PostConstruct
+    void signup() throws Exception {
+        if (memberRepository.existsByUserLogInId("ceos1234")) {
+            return;
+        }
+
         SignupRequest signupRequest = new SignupRequest(
-                userId,
+                "ceos1234",
                 "ceos1234**",
-                email,
-                part,
-                username,
-                team
+                "ceos1234@gmail.com",
+                Part.BACKEND,
+                "홍길동",
+                Team.CONX
         );
 
         mockMvc.perform(post("/api/v1/auth/signup")
@@ -495,25 +509,11 @@ class VoteApiTest {
     private String login(String userId, String password) throws Exception {
         LoginRequest loginRequest = new LoginRequest(userId, password);
 
-        String responseBody = mockMvc.perform(post("/api/v1/auth/login")
+        return mockMvc.perform(post("/api/v1/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        JsonNode jsonNode = objectMapper.readTree(responseBody);
-        String accessToken = jsonNode.path("payload").path("accessToken").asText();
-
-        if (accessToken == null || accessToken.isBlank()) {
-            throw new IllegalArgumentException("accessToken이 없습니다. responseBody = " + responseBody);
-        }
-
-        if (accessToken.startsWith("Bearer ")) {
-            return accessToken;
-        }
-
-        return "Bearer " + accessToken;
+                .getResponse().getHeader("Authorization");
     }
 }

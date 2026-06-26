@@ -1,9 +1,6 @@
 package com.ceos23.spring_boot.auth.service;
 
-import com.ceos23.spring_boot.auth.dto.LoginRequest;
-import com.ceos23.spring_boot.auth.dto.LoginResponse;
-import com.ceos23.spring_boot.auth.dto.SignupRequest;
-import com.ceos23.spring_boot.auth.dto.SignupResponse;
+import com.ceos23.spring_boot.auth.dto.*;
 import com.ceos23.spring_boot.global.exception.CustomException;
 import com.ceos23.spring_boot.global.exception.ErrorCode;
 import com.ceos23.spring_boot.global.security.token.JWTType;
@@ -47,7 +44,7 @@ public class AuthService {
     }
 
 
-    public LoginResponse login(LoginRequest request) {
+    public LoginServiceResponseDTO login(LoginRequest request) {
         String userLoginId = request.userLoginId();
         String password = request.password();
 
@@ -74,12 +71,8 @@ public class AuthService {
                 TimeUnit.SECONDS
         );
 
-        return LoginResponse.of(
-                accessToken,
-                refreshToken,
-                member.getUsername(),
-                member.getPart().name(),
-                member.getTeam().name()
-        );
+        LoginResponseDTO info = LoginResponseDTO.create(member);
+
+        return LoginServiceResponseDTO.of(accessToken, refreshToken, info);
     }
 }
